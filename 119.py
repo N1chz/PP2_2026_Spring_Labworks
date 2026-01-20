@@ -1,0 +1,5 @@
+s = str(input().strip())
+t = str(input().strip())
+r = str(input().strip())
+res = s.replace(t, r)
+print (res)
