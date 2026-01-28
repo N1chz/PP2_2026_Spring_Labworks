@@ -5,5 +5,7 @@ max_index = 0
 for i in range(n):
     if arr[i] > max:
         max = arr[i]
-max_index = i
-print(max)
+for i in range(n):
+    if arr[i] == max:
+        max_index = i + 1
+print(max_index)
