@@ -1,8 +1,5 @@
 class MyClass:
   x = 5
-  p1 = MyClass()
-print(p1.x) 
-del p1 
 p1 = MyClass()
 p2 = MyClass()
 p3 = MyClass()
@@ -13,14 +10,9 @@ print(p3.x)
 class Person:
   pass
   class Person:
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
-
-p1 = Person("Emil", 36)
-
-print(p1.name)
-print(p1.age) 
+    def __init__(self, name, age):
+      self.name = name
+      self.age = age
 class Person:
   pass
 
@@ -28,15 +20,12 @@ p1 = Person()
 p1.name = "Tobias"
 p1.age = 25
 
-print(p1.name)
-print(p1.age) 
 class Person:
   def __init__(self, name, age):
     self.name = name
     self.age = age
 
 p1 = Person("Linus", 28)
-
 print(p1.name)
 print(p1.age) 
 class Person:
