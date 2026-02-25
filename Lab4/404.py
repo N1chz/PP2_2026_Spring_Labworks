@@ -1,6 +1,7 @@
-def sqrt_gen(n):
-    for i in range (n):
-        x = map(int, input().split())
-        a = a * a
-        yield x
-n , m = map(int, input().split())
+def squares(a, b):
+    for i in range(a, b + 1):
+        yield i * i
+
+a, b = map(int, input().split())
+for num in squares(a, b):
+    print(num)
