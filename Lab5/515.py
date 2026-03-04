@@ -1,0 +1,1 @@
+import re; print(re.sub(r'\d', lambda m: m.group()*2, input()))
