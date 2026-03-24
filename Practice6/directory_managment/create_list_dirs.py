@@ -2,7 +2,7 @@ import os
 # 1 get path to directory
 print(os.getcwd())
 # 2 change directory
-os.chdir(r'Users/niyazguldenbek/PP2_2026_Spring_Labworks/Practice6/directory_managment/create_list_dirs.py')
+os.chdir(r'//Users/niyazguldenbek/PP2_2026_Spring_Labworks/Practice6/directory_managment/create_list_dirs.py')
 print(os.getcwd())
 # 3 make/create dire
 os.mkdir('new_folder')
