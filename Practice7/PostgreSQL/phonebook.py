@@ -82,7 +82,7 @@ def delete():
 
 if __name__ == "__main__":
     # create_table() — это можно закомментировать, таблица уже есть
-    insert_data_from_csv('phonebook.csv')
+    insert_data_from_csv('contacts.csv')
     
     # Чтобы протестировать загрузку из CSV:
     # 1. Создай файл phonebook.csv
