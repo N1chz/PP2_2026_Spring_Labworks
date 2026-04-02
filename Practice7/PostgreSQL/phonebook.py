@@ -150,9 +150,6 @@ if __name__ == "__main__":
     create_table()
     
     while True:
-        print("\n" + "="*30)
-        print("       PHONEBOOK MENU")
-        print("="*30)
         print("1 - Show all contacts")
         print("2 - Add contact manually")
         print("3 - Import contacts from CSV file")
@@ -160,9 +157,8 @@ if __name__ == "__main__":
         print("5 - Search contacts")
         print("6 - Delete a contact")
         print("0 - Exit program")
-        print("="*30)
         
-        choice = input("Choose an action (0-6): ")
+        choice = input()
         
         if choice == '1':
             show_all_contacts()
@@ -178,7 +174,6 @@ if __name__ == "__main__":
         elif choice == '6':
             delete()
         elif choice == '0':
-            print("Exiting program. Goodbye!")
             break
         else:
-            print("Invalid input. Please choose a number between 0 and 6.")
+            print("Invalid input")
