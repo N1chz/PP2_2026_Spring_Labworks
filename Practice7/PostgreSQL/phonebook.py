@@ -22,7 +22,6 @@ def create_table():
     """
     execute_query(sql)
     print("Table successfully created or already exists.")
-
 def show_all_contacts():
     print("\n=== ALL CONTACTS LIST ===")
     config = load_config()
