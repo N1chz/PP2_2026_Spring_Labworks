@@ -1,6 +1,6 @@
 import psycopg2
 import csv
-from config import load_config
+from TSIS.TASK1.config import load_config
 
 def execute_query(sql, params=None):
     config = load_config()
