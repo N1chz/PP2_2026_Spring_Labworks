@@ -1,6 +1,6 @@
 import json
 import os
-
+#SAVE THE RECCORD
 SETTINGS_FILE = "settings.json"
 LEADERBOARD_FILE = "leaderboard.json"
 
@@ -31,7 +31,7 @@ def load_leaderboard():
 def save_score(name, score, distance):
     board = load_leaderboard()
     board.append({"name": name, "score": score, "distance": round(distance, 1)})
-    board.sort(key=lambda x: (x["score"], x["distance"]), reverse=True)
-    board = board[:10]
+    board.sort(key=lambda x: (x["score"], x["distance"]), reverse=True) # lambda x: is first  sort of score and after that distance
+    board = board[:10] # Top 10 only
     with open(LEADERBOARD_FILE, "w") as f:
-        json.dump(board, f, indent=4)
+        json.dump(board, f, indent=4) #update our file with new reord maybe

@@ -19,9 +19,9 @@ DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Game")
 clock = pygame.time.Clock() #Manage FPS
 
-font_title = pygame.font.SysFont("Verdana", 40, bold=True)
-font_ui = pygame.font.SysFont("Verdana", 18)
-game_over_font = pygame.font.SysFont("Verdana", 60)
+font_title = pygame.font.SysFont("Verdana", 40, bold=True) #Shrift для заголовков
+font_ui = pygame.font.SysFont("Verdana", 18) #Shrift for coins and etc
+game_over_font = pygame.font.SysFont("Verdana", 60) #Shrift for end game
 
 
 C_BG = (50, 50, 50)
@@ -35,15 +35,15 @@ BLACK = (0, 0, 0)
 background = pygame.image.load("AnimatedStreet.png")
 
 
-settings = db.load_settings()
+settings = db.load_settings() #load from json file
 username = "Player 1"
 
 def play_sound(sound_file):
-    if settings["sound"]:
-        try:
-            pygame.mixer.Sound(sound_file).play()
+    if settings["sound"]: #Check sound is work or not?
+        try: # Пробуем запустить звук (try защищает игру от вылета, если файла нет)
+            pygame.mixer.Sound(sound_file).play() # load the song
         except:
-            pass
+            pass #just skip
 
 def main_menu():
     global username
@@ -52,7 +52,7 @@ def main_menu():
     btn_sett = ui.Button(100, 340, 200, 50, "SETTINGS", (150, 150, 0), (200, 200, 0))
     btn_quit = ui.Button(100, 410, 200, 50, "QUIT", RED, (255, 50, 50))
     
-    input_name = ui.TextInput(100, 130, 200, 40)
+    input_name = ui.TextInput(100, 130, 200, 40) #create some space to enter username
     input_name.text = username
 
     while True:
@@ -78,7 +78,7 @@ def main_menu():
             
             if btn_play.is_clicked(event):
                 username = input_name.text if input_name.text else "Anonymous"
-                game_loop()
+                game_loop() #Start the game
             if btn_lead.is_clicked(event):
                 leaderboard_screen()
             if btn_sett.is_clicked(event):
@@ -88,14 +88,14 @@ def main_menu():
                 sys.exit()
                 
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(60) #limit fps to 60
 
 def settings_screen():
     global settings
     while True:
         DISPLAYSURF.fill(C_BG)
-        title = font_title.render("SETTINGS", True, WHITE)
-        DISPLAYSURF.blit(title, (title.get_rect(center=(200, 50))))
+        title = font_title.render("SETTINGS", True, WHITE) # Готовим заголовок
+        DISPLAYSURF.blit(title, (title.get_rect(center=(200, 50)))) # Рисуем заголовок
         
         sound_text = f"Sound: {'ON' if settings['sound'] else 'OFF'}"
         diff_text = f"Difficulty: {settings['difficulty']}"
@@ -109,7 +109,7 @@ def settings_screen():
         btn_sound.draw(DISPLAYSURF)
         btn_diff.draw(DISPLAYSURF)
         btn_color.draw(DISPLAYSURF)
-        btn_back.draw(DISPLAYSURF)
+        btn_back.draw(DISPLAYSURF) #draw button on the screen
         
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -128,22 +128,22 @@ def settings_screen():
                 settings["car_color"] = colors[(colors.index(settings["car_color"]) + 1) % 3]
                 db.save_settings(settings)
             if btn_back.is_clicked(event):
-                return
+                return #quit of our function
                 
-        pygame.display.update()
+        pygame.display.update() # update the screen
         clock.tick(60)
 
 def leaderboard_screen():
     board = db.load_leaderboard()
-    btn_back = ui.Button(100, 520, 200, 45, "BACK", (0, 0, 150), (0, 0, 200))
+    btn_back = ui.Button(100, 520, 200, 45, "BACK", (0, 0, 150), (0, 0, 200)) #create the BACK button
     
-    font_board = pygame.font.SysFont("Verdana", 16)
-    font_bold = pygame.font.SysFont("Verdana", 16, bold=True)
+    font_board = pygame.font.SysFont("Verdana", 16) # Обычный шрифт для списка
+    font_bold = pygame.font.SysFont("Verdana", 16, bold=True) # Жирный шрифт для заголовков таблицы
     
     while True:
         DISPLAYSURF.fill(C_BG)
-        title = font_title.render("TOP 10", True, WHITE)
-        DISPLAYSURF.blit(title, (title.get_rect(center=(200, 40))))
+        title = font_title.render("TOP 10", True, WHITE) # prepare the заголовок
+        DISPLAYSURF.blit(title, (title.get_rect(center=(200, 40)))) #draw
         
         col_rank = 30
         col_name = 80
@@ -160,11 +160,11 @@ def leaderboard_screen():
         DISPLAYSURF.blit(h_score, (col_score, 90))
         DISPLAYSURF.blit(h_dist, (col_dist, 90))
         
-        pygame.draw.line(DISPLAYSURF, (150, 150, 150), (30, 115), (370, 115), 1)
+        pygame.draw.line(DISPLAYSURF, (150, 150, 150), (30, 115), (370, 115), 1) # Рисуем декоративную линию под заголовками
         
-        for i, entry in enumerate(board[:10]):
-            y_pos = 130 + i * 32
-            disp_name = entry['name'][:12]
+        for i, entry in enumerate(board[:10]): #Top 10 
+            y_pos = 130 + i * 32 # Считаем координату Y для каждой строчки
+            disp_name = entry['name'][:12] # Обрезаем слишком длинные имена
             
             t_rank = font_board.render(f"{i+1}.", True, WHITE)
             t_name = font_board.render(disp_name, True, WHITE)
@@ -176,7 +176,7 @@ def leaderboard_screen():
             DISPLAYSURF.blit(t_score, (col_score, y_pos))
             DISPLAYSURF.blit(t_dist, (col_dist, y_pos))
             
-        btn_back.draw(DISPLAYSURF)
+        btn_back.draw(DISPLAYSURF) #draw back button
         
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -188,7 +188,7 @@ def leaderboard_screen():
         pygame.display.update()
         clock.tick(60)
 
-def game_loop():
+def game_loop(): #main and crucial part of my game
     diff = settings["difficulty"]
     color_of_car = settings["car_color"]
     
@@ -214,33 +214,33 @@ def game_loop():
     powerup_time = 0
     nitro_mult = 1.0
     
-    player_speed_mult = 1.0
+    player_speed_mult = 1.0 # Множитель скорости игрока 
     lane_hazard_mult = 1.0
     difficulty_scale = 1.0
     
     player = racer.Player(color_of_car)
-    
+    # Создаем группы спрайтов for comtable usage
     enemies = pygame.sprite.Group()
     coins_group = pygame.sprite.Group()
     powerups = pygame.sprite.Group()
     road_events = pygame.sprite.Group()
     
-    all_sprites = pygame.sprite.Group()
+    all_sprites = pygame.sprite.Group() #main group
     all_sprites.add(player)
     
     for i in range(target_enemies):
         new_enemy = racer.Enemy(game_speed)
         new_enemy.rect.center = (random.randint(40, 360), -100 - (i * 250))
         enemies.add(new_enemy)
-        all_sprites.add(new_enemy)
+        all_sprites.add(new_enemy) # Добавляем в общую группу
     
     for i in range(3):
         c = racer.Coins()
         coins_group.add(c)
         all_sprites.add(c)
     
-    INC_SPEED = pygame.USEREVENT + 1
-    pygame.time.set_timer(INC_SPEED, 2000)
+    INC_SPEED = pygame.USEREVENT + 1 #create the own event to manage the speed 
+    pygame.time.set_timer(INC_SPEED, 2000) # complete this evernt every 2 seconds
     
     running = True
     while running:
@@ -257,7 +257,7 @@ def game_loop():
                     spr.speed = game_speed
                 
         player.move(player_speed_mult)
-        
+        # Логика генерации новых объектов
         if len(coins_group) < 3 and random.random() < (0.02 * difficulty_scale):
             c = racer.Coins()
             coins_group.add(c)
@@ -275,40 +275,40 @@ def game_loop():
             
        
         for spr in enemies:
-            if spr.move(current_speed):
+            if spr.move(current_speed): # Метод move возвращает True, если враг ушел за нижний край экрана
                 score += 1
                 if score % 5 == 0:
                     difficulty_scale += 0.2
             
         for c in coins_group: c.move(current_speed)
         for p in powerups: p.move(current_speed)
-        for ev in road_events: ev.move(current_speed)
+        for ev in road_events: ev.move(current_speed) #move this object on the down of our screen
         
-        distance += current_speed / 60.0
+        distance += current_speed / 60.0 # count our distance
         
         if distance >= TOTAL_DISTANCE:
             db.save_score(username, score, distance)
             game_over_screen(score, distance)
             return
         
-        if active_powerup == "Nitro" and time.time() > powerup_time:
-            nitro_mult = 1.0
-            active_powerup = None
-        elif active_powerup == "Shield" and not player.shielded:
-            active_powerup = None
+        if active_powerup == "Nitro" and time.time() > powerup_time: #if nitro is end
+            nitro_mult = 1.0 # go the start speed 
+            active_powerup = None # End our nitro 
+        elif active_powerup == "Shield" and not player.shielded: # if the shield is saving 
+            active_powerup = None 
             
         player_speed_mult = 1.0
         lane_hazard_mult = 1.0
         
-        collided_events = pygame.sprite.spritecollide(player, road_events, False)
+        collided_events = pygame.sprite.spritecollide(player, road_events, False) #if i take something on the road
         for ev in collided_events:
             if ev.type == "Oil":
-                player_speed_mult = 0.5 
-                lane_hazard_mult = 0.7 
+                player_speed_mult = 0.5  # Manage the car is lower than before 
+                lane_hazard_mult = 0.7  # speed is decrease
             elif ev.type == "NitroStrip":
-                lane_hazard_mult = 1.5 
+                lane_hazard_mult = 1.5 # speed is increase
             
-        collected_coins = pygame.sprite.spritecollide(player, coins_group, True)
+        collected_coins = pygame.sprite.spritecollide(player, coins_group, True) # True mean is delete the coin after taken
         for coin in collected_coins:
             play_sound("get_coin.wav")
             COINS += coin.value
@@ -356,9 +356,9 @@ def game_loop():
 
         DISPLAYSURF.blit(background, (0, 0))
         
-        for entity in all_sprites:
+        for entity in all_sprites: # draw all objects 
             DISPLAYSURF.blit(entity.image, entity.rect)
-            
+        # draw interface
         scores_txt = font_ui.render(f"Score: {score}", True, BLACK)
         DISPLAYSURF.blit(scores_txt, (10, 10))
         amount_coins = font_ui.render(f"Coins: {COINS}", True, BLACK)

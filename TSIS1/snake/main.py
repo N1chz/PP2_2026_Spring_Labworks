@@ -16,10 +16,10 @@ pygame.display.set_caption("Snake TSIS4")
 font       = pygame.font.SysFont(None, 36)
 font_small = pygame.font.SysFont(None, 28)
 font_big   = pygame.font.SysFont(None, 54)
-clock = pygame.time.Clock()
+clock = pygame.time.Clock() #FPS
 
 # ── Try to init DB (silently fails if no Postgres available) ──────────────────
-DB_OK = db.init_db()
+DB_OK = db.init_db() # Initialize the data base
 
 # ── Shared helpers 
 
@@ -31,29 +31,29 @@ def draw_button(text, rect, hover=False):
     screen.blit(surf, surf.get_rect(center=rect.center))
 
 def text_input_screen(prompt):
-    """Simple text input screen. Returns the entered string."""
+    #Enter the username
     text = ""
     while True:
         screen.fill(colorBLACK)
         title = font_big.render("SNAKE", True, colorGREEN)
         screen.blit(title, title.get_rect(center=(WIDTH // 2, 120)))
         p_surf = font.render(prompt, True, colorWHITE)
-        screen.blit(p_surf, p_surf.get_rect(center=(WIDTH // 2, 240)))
+        screen.blit(p_surf, p_surf.get_rect(center=(WIDTH // 2, 240))) #tips for player
         box = pygame.Rect(WIDTH // 2 - 150, 280, 300, 44)
         pygame.draw.rect(screen, (40, 40, 40), box)
-        pygame.draw.rect(screen, colorWHITE, box, 2)
+        pygame.draw.rect(screen, colorWHITE, box, 2) # create the space to enter username
         t_surf = font.render(text + "|", True, colorGREEN)
-        screen.blit(t_surf, t_surf.get_rect(center=box.center))
+        screen.blit(t_surf, t_surf.get_rect(center=box.center)) #draw what player enter
         hint = font_small.render("Press ENTER to confirm", True, colorGRAY)
         screen.blit(hint, hint.get_rect(center=(WIDTH // 2, 360)))
-        pygame.display.flip()
+        pygame.display.flip() #hint also
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); raise SystemExit
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN: #enter the text what player type                
                 if event.key == pygame.K_RETURN and text.strip():
                     return text.strip()
-                elif event.key == pygame.K_BACKSPACE:
+                elif event.key == pygame.K_BACKSPACE: #and delete if player delete
                     text = text[:-1]
                 elif len(text) < 20 and event.unicode.isprintable():
                     text += event.unicode

@@ -6,7 +6,7 @@ Requires: psycopg2, database.ini in the same folder, setup.sql already run in ps
 import psycopg2
 import csv
 import json
-from TSIS1.phonebook.config import load_config
+from config import load_config
 
 
 def get_conn():

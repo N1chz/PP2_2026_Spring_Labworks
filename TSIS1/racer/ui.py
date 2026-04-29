@@ -3,15 +3,15 @@ import pygame
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-class Button:
-    def __init__(self, x, y, w, h, text, color, hover_color):
+class Button: #Create all button for the game
+    def __init__(self, x, y, w, h, text, color, hover_color): # init is Конструктор
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.color = color
         self.hover_color = hover_color
         self.font = pygame.font.SysFont("Verdana", 20)
 
-    def draw(self, surface):
+    def draw(self, surface): #draw everyhting 
         mouse_pos = pygame.mouse.get_pos()
         current_color = self.hover_color if self.rect.collidepoint(mouse_pos) else self.color
         pygame.draw.rect(surface, current_color, self.rect, border_radius=5)
@@ -24,15 +24,15 @@ class Button:
             return self.rect.collidepoint(event.pos)
         return False
 
-class TextInput:
+class TextInput: # Class for to enter the username
     def __init__(self, x, y, w, h):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = ""
         self.font = pygame.font.SysFont("Verdana", 24)
 
     def handle_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
+        if event.type == pygame.KEYDOWN: #enter the username
+            if event.key == pygame.K_BACKSPACE: #delete the text
                 self.text = self.text[:-1]
             elif len(self.text) < 12 and event.unicode.isalnum():
                 self.text += event.unicode
