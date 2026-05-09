@@ -14,7 +14,7 @@ def get_conn():
 
 
 def print_row(row):
-    """Print one contact. Row = (id, username, email, birthday, group, phones)"""
+    """Print one contact. Row = (id, name, email, birthday, group, phones)"""
     cid, name, email, bday, grp, phones = row
     print(f"  [{cid}] {name}"
           f"  | email: {email or '-'}"
@@ -33,7 +33,7 @@ def check_setup():
                 cur.execute("""
                     SELECT table_name FROM information_schema.tables
                     WHERE table_schema='public'
-                      AND table_name IN ('phonebook','phones','groups')
+                      AND table_name IN ('contacts','phones','groups')
                     ORDER BY table_name;
                 """)
                 tables = [r[0] for r in cur.fetchall()]
@@ -42,14 +42,14 @@ def check_setup():
                     SELECT routine_name FROM information_schema.routines
                     WHERE routine_schema='public'
                       AND routine_name IN (
-                          'upsert_u','loophz','del_user',
-                          'add_phone','move_to_group',
-                          'pagination','search_contacts')
+                          'upsert_u', 'loophz', 'del_user',
+                          'add_phone', 'move_to_group',
+                          'pagination', 'search_contacts')
                     ORDER BY routine_name;
                 """)
                 routines = [r[0] for r in cur.fetchall()]
 
-        need_tables   = ['groups', 'phonebook', 'phones']
+        need_tables   = ['contacts', 'groups', 'phones']
         need_routines = ['add_phone','del_user','loophz','move_to_group',
                          'pagination','search_contacts','upsert_u']
 
@@ -64,7 +64,7 @@ def check_setup():
             if missing_r:
                 print(f"MISSING procedures: {missing_r}")
             print("\nFix: open psql and run:")
-            print(r"  \c phonebook")
+            print(r"  \c phonebook_db")
             print(r"  \i setup.sql")
 
     except Exception as e:
@@ -72,34 +72,34 @@ def check_setup():
         print("Check your database.ini credentials.")
 
 
-# ── 2. UPSERT  (from Practice 8) ─────────────────────────────────────────────
+# ── 2. UPSERT ────────────────────────────────────────────────────────────────
 
 def upsert_contact():
-    """Add a contact + phone. If username exists, just adds the phone."""
-    username = input("Username: ").strip()
-    phone    = input("Phone: ").strip()
-    ptype    = input("Phone type (home/work/mobile) [mobile]: ").strip() or "mobile"
+    """Add a contact + phone. If name exists, just adds the phone."""
+    name  = input("Name: ").strip()
+    phone = input("Phone: ").strip()
+    ptype = input("Phone type (home/work/mobile) [mobile]: ").strip() or "mobile"
 
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
-                cur.execute("CALL upsert_u(%s, %s, %s);", (username, phone, ptype))
+                cur.execute("CALL upsert_u(%s, %s, %s);", (name, phone, ptype))
             conn.commit()
-        print(f"Done — '{username}' saved.")
+        print(f"Done — '{name}' saved.")
     except Exception as e:
         print(f"Error: {e}")
 
 
-# ── 3. BULK INSERT  (from Practice 8) ────────────────────────────────────────
+# ── 3. BULK INSERT ───────────────────────────────────────────────────────────
 
 def bulk_insert():
-    """Insert many contacts at once. Invalid entries are skipped with a warning."""
-    print("Usernames (space-separated): ", end="")
-    usernames = input().split()
-    print("Phones (same order):         ", end="")
+    """Insert many contacts at once."""
+    print("Names (space-separated): ", end="")
+    names = input().split()
+    print("Phones (same order):      ", end="")
     phones = input().split()
 
-    if len(usernames) != len(phones):
+    if len(names) != len(phones):
         print("Count mismatch — aborting.")
         return
 
@@ -107,7 +107,7 @@ def bulk_insert():
         with get_conn() as conn:
             conn.notices.clear()
             with conn.cursor() as cur:
-                cur.execute("CALL loophz(%s, %s);", (usernames, phones))
+                cur.execute("CALL loophz(%s, %s);", (names, phones))
             conn.commit()
             for n in conn.notices:
                 print("WARNING:", n.strip())
@@ -116,38 +116,37 @@ def bulk_insert():
         print(f"Error: {e}")
 
 
-# ── 4. UPDATE  (from Practice 7) ─────────────────────────────────────────────
+# ── 4. UPDATE ────────────────────────────────────────────────────────────────
 
 def update_contact():
-    """Update username, email, or birthday of a contact."""
-    print("Update:  1.Username  2.Email  3.Birthday")
+    """Update name, email, or birthday of a contact."""
+    print("Update:  1.Name  2.Email  3.Birthday")
     choice = input("Choice: ").strip()
-    field_map = {"1": "username", "2": "email", "3": "birthday"}
+    field_map = {"1": "name", "2": "email", "3": "birthday"}
     if choice not in field_map:
         print("Invalid.")
         return
     field    = field_map[choice]
-    old_name = input("Current username: ").strip()
+    old_name = input("Current name: ").strip()
     new_val  = input(f"New {field}: ").strip()
 
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
-                # field comes from our own dict — no SQL injection possible
-                cur.execute(f"UPDATE phonebook SET {field}=%s WHERE username=%s",
+                cur.execute(f"UPDATE contacts SET {field}=%s WHERE name=%s",
                             (new_val, old_name))
                 changed = cur.rowcount
             conn.commit()
-        print(f"Updated." if changed else "No contact with that username.")
+        print(f"Updated." if changed else "No contact with that name.")
     except Exception as e:
         print(f"Error: {e}")
 
 
-# ── 5. ADD PHONE  (new — calls add_phone procedure) ──────────────────────────
+# ── 5. ADD PHONE ─────────────────────────────────────────────────────────────
 
 def add_phone():
     """Add an extra phone number to an existing contact."""
-    name  = input("Username: ").strip()
+    name  = input("Name: ").strip()
     phone = input("New phone: ").strip()
     ptype = input("Type (home/work/mobile) [mobile]: ").strip() or "mobile"
 
@@ -163,11 +162,11 @@ def add_phone():
         print(f"Error: {e}")
 
 
-# ── 6. MOVE TO GROUP  (new — calls move_to_group procedure) ──────────────────
+# ── 6. MOVE TO GROUP ─────────────────────────────────────────────────────────
 
 def move_to_group():
-    """Move a contact to a group. Creates the group if it doesn't exist."""
-    name  = input("Username: ").strip()
+    """Move a contact to a group."""
+    name  = input("Name: ").strip()
     group = input("Group name: ").strip()
 
     try:
@@ -182,25 +181,24 @@ def move_to_group():
         print(f"Error: {e}")
 
 
-# ── 7. QUERY  (from Practice 7 + sort) ───────────────────────────────────────
+# ── 7. QUERY ─────────────────────────────────────────────────────────────────
 
 def query_contacts():
     """Search by name / phone / email with sorting."""
     print("Filter:  1.Name  2.Phone prefix  3.Email")
     mode = input("Choice: ").strip()
-    print("Sort by: 1.Name  2.Birthday  3.Date added")
-    sort = {"1":"c.username","2":"c.birthday","3":"c.created_at"}.get(
-            input("Choice: ").strip(), "c.username")
+    print("Sort by: 1.Name  2.Birthday  3.ID")
+    sort = {"1":"c.name","2":"c.birthday","3":"c.id"}.get(
+            input("Choice: ").strip(), "c.name")
 
-    # Base query — same JOIN structure for all three modes
     base = f"""
-        SELECT c.id, c.username, c.email, c.birthday, g.name,
+        SELECT c.id, c.name, c.email, c.birthday, g.name,
                STRING_AGG(p.phone||' ('||COALESCE(p.type,'?')||')', ', ')
-        FROM phonebook c
+        FROM contacts c
         LEFT JOIN groups g ON g.id = c.group_id
         LEFT JOIN phones p ON p.contact_id = c.id
         WHERE {{where}}
-        GROUP BY c.id, c.username, c.email, c.birthday, g.name, c.created_at
+        GROUP BY c.id, c.name, c.email, c.birthday, g.name
         ORDER BY {sort}
     """
     try:
@@ -208,7 +206,7 @@ def query_contacts():
             with conn.cursor() as cur:
                 if mode == "1":
                     val = input("Name (or part): ").strip()
-                    cur.execute(base.format(where="c.username ILIKE %s"),
+                    cur.execute(base.format(where="c.name ILIKE %s"),
                                 (f"%{val}%",))
                 elif mode == "2":
                     val = input("Phone prefix: ").strip()
@@ -231,7 +229,7 @@ def query_contacts():
         print(f"Error: {e}")
 
 
-# ── 8. FILTER BY GROUP  (new) ─────────────────────────────────────────────────
+# ── 8. FILTER BY GROUP ───────────────────────────────────────────────────────
 
 def filter_by_group():
     """Show contacts from one group."""
@@ -252,14 +250,14 @@ def filter_by_group():
                 col = "g.id" if choice.isdigit() else "g.name"
                 val = int(choice) if choice.isdigit() else choice
                 cur.execute(f"""
-                    SELECT c.id, c.username, c.email, c.birthday, g.name,
+                    SELECT c.id, c.name, c.email, c.birthday, g.name,
                            STRING_AGG(p.phone||' ('||COALESCE(p.type,'?')||')', ', ')
-                    FROM phonebook c
+                    FROM contacts c
                     JOIN groups g ON g.id = c.group_id
                     LEFT JOIN phones p ON p.contact_id = c.id
                     WHERE {col} = %s
-                    GROUP BY c.id, c.username, c.email, c.birthday, g.name
-                    ORDER BY c.username;
+                    GROUP BY c.id, c.name, c.email, c.birthday, g.name
+                    ORDER BY c.name;
                 """, (val,))
                 rows = cur.fetchall()
 
@@ -271,7 +269,7 @@ def filter_by_group():
         print(f"Error: {e}")
 
 
-# ── 9. FULL SEARCH  (new — calls search_contacts function) ───────────────────
+# ── 9. FULL SEARCH ───────────────────────────────────────────────────────────
 
 def full_search():
     """Search name + email + all phone numbers at once."""
@@ -289,10 +287,10 @@ def full_search():
         print(f"Error: {e}")
 
 
-# ── 10. PAGINATED BROWSE  (from Practice 8 + next/prev loop) ─────────────────
+# ── 10. PAGINATED BROWSE ─────────────────────────────────────────────────────
 
 def paginated_browse():
-    """Browse page by page. Commands: next / prev / quit"""
+    """Browse page by page."""
     page_size = 5
     page      = 0
 
@@ -314,7 +312,10 @@ def paginated_browse():
         print(f"\n--- Page {page+1} ---")
         for r in rows:
             print_row(r)
-        if len(rows) < page_size:
+        
+        if not rows:
+            print("(no more data)")
+        elif len(rows) < page_size:
             print("(last page)")
 
         cmd = input("next / prev / quit: ").strip().lower()
@@ -323,14 +324,14 @@ def paginated_browse():
         elif cmd == "quit": break
 
 
-# ── 11. DELETE  (from Practice 8) ────────────────────────────────────────────
+# ── 11. DELETE ───────────────────────────────────────────────────────────────
 
 def delete_contact():
-    """Delete by username or phone number."""
-    print("Delete by:  1.Username  2.Phone")
+    """Delete by name or phone number."""
+    print("Delete by:  1.Name  2.Phone")
     choice = input("Choice: ").strip()
     if choice == "1":
-        val = input("Username: ").strip()
+        val = input("Name: ").strip()
     elif choice == "2":
         val = input("Phone: ").strip()
     else:
@@ -347,10 +348,10 @@ def delete_contact():
         print(f"Error: {e}")
 
 
-# ── 12. CSV IMPORT  (from Practice 7, extended) ───────────────────────────────
+# ── 12. CSV IMPORT ───────────────────────────────────────────────────────────
 
 def csv_import():
-    """Import from CSV. Columns: username, phone, phone_type, email, birthday, group"""
+    """Import from CSV. Columns: name, phone, phone_type, email, birthday, group"""
     path = input("CSV path [contacts.csv]: ").strip() or "contacts.csv"
 
     try:
@@ -365,8 +366,8 @@ def csv_import():
         with get_conn() as conn:
             with conn.cursor() as cur:
                 for row in rows:
-                    username = row.get('username','').strip()
-                    if not username:
+                    name = row.get('name','').strip() or row.get('username','').strip()
+                    if not name:
                         skipped += 1
                         continue
 
@@ -376,7 +377,6 @@ def csv_import():
                     birthday   = row.get('birthday','').strip() or None
                     group_name = row.get('group','').strip() or None
 
-                    # resolve group_id
                     group_id = None
                     if group_name:
                         cur.execute(
@@ -386,22 +386,19 @@ def csv_import():
                         res = cur.fetchone()
                         group_id = res[0] if res else None
 
-                    # insert contact
                     cur.execute("""
-                        INSERT INTO phonebook (username, email, birthday, group_id)
+                        INSERT INTO contacts (name, email, birthday, group_id)
                         VALUES (%s,%s,%s,%s)
-                        ON CONFLICT (username) DO NOTHING;
-                    """, (username, email, birthday, group_id))
+                        ON CONFLICT (name) DO NOTHING;
+                    """, (name, email, birthday, group_id))
 
                     if cur.rowcount == 0:
                         skipped += 1
                     else:
                         inserted += 1
 
-                    # insert phone
                     if phone:
-                        cur.execute("SELECT id FROM phonebook WHERE username=%s;",
-                                    (username,))
+                        cur.execute("SELECT id FROM contacts WHERE name=%s;", (name,))
                         cid = cur.fetchone()
                         if cid:
                             cur.execute("""
@@ -415,7 +412,7 @@ def csv_import():
         print(f"Error: {e}")
 
 
-# ── 13. EXPORT JSON  (new) ────────────────────────────────────────────────────
+# ── 13. EXPORT JSON ──────────────────────────────────────────────────────────
 
 def export_json():
     """Export all contacts to a JSON file."""
@@ -424,10 +421,10 @@ def export_json():
         with get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT c.id, c.username, c.email, c.birthday::TEXT, g.name
-                    FROM phonebook c
+                    SELECT c.id, c.name, c.email, c.birthday::TEXT, g.name
+                    FROM contacts c
                     LEFT JOIN groups g ON g.id = c.group_id
-                    ORDER BY c.username;
+                    ORDER BY c.name;
                 """)
                 rows = cur.fetchall()
                 out = []
@@ -436,7 +433,7 @@ def export_json():
                         "SELECT phone, type FROM phones WHERE contact_id=%s ORDER BY id;",
                         (cid,))
                     phones = [{"phone": p, "type": t} for p, t in cur.fetchall()]
-                    out.append({"username":name,"email":email,
+                    out.append({"name":name,"email":email,
                                 "birthday":bday,"group":grp,"phones":phones})
 
         with open(path, 'w', encoding='utf-8') as f:
@@ -446,10 +443,10 @@ def export_json():
         print(f"Error: {e}")
 
 
-# ── 14. IMPORT JSON  (new) ────────────────────────────────────────────────────
+# ── 14. IMPORT JSON ──────────────────────────────────────────────────────────
 
 def import_json():
-    """Import contacts from a JSON file. Asks skip/overwrite on duplicates."""
+    """Import contacts from a JSON file."""
     path = input("JSON file [contacts.json]: ").strip() or "contacts.json"
     try:
         with open(path, encoding='utf-8') as f:
@@ -466,8 +463,8 @@ def import_json():
         with get_conn() as conn:
             with conn.cursor() as cur:
                 for c in data:
-                    username = c.get("username","").strip()
-                    if not username:
+                    name = c.get("name","").strip() or c.get("username","").strip()
+                    if not name:
                         skipped += 1
                         continue
                     email    = c.get("email")    or None
@@ -475,18 +472,17 @@ def import_json():
                     grp      = c.get("group")    or None
                     phones   = c.get("phones", [])
 
-                    cur.execute("SELECT id FROM phonebook WHERE username=%s;",
-                                (username,))
+                    cur.execute("SELECT id FROM contacts WHERE name=%s;", (name,))
                     existing = cur.fetchone()
 
                     if existing:
-                        ans = input(f"'{username}' exists. (s)kip / (o)verwrite? ").strip().lower()
+                        ans = input(f"'{name}' exists. (s)kip / (o)verwrite? ").strip().lower()
                         if ans != "o":
                             skipped += 1
                             continue
                         cid = existing[0]
                         cur.execute(
-                            "UPDATE phonebook SET email=%s, birthday=%s WHERE id=%s;",
+                            "UPDATE contacts SET email=%s, birthday=%s WHERE id=%s;",
                             (email, birthday, cid))
                         cur.execute("DELETE FROM phones WHERE contact_id=%s;", (cid,))
                         overwritten += 1
@@ -501,9 +497,9 @@ def import_json():
                             group_id = r[0] if r else None
 
                         cur.execute("""
-                            INSERT INTO phonebook (username,email,birthday,group_id)
+                            INSERT INTO contacts (name,email,birthday,group_id)
                             VALUES (%s,%s,%s,%s) RETURNING id;
-                        """, (username, email, birthday, group_id))
+                        """, (name, email, birthday, group_id))
                         cid = cur.fetchone()[0]
                         inserted += 1
 
